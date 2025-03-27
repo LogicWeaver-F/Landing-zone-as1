@@ -68,3 +68,12 @@ variable "os_image_version" {
   type        = string
   default     = "latest"
 }
+
+variable "common_tags" {
+  description = "Common tags for resources"
+  type        = map(string)
+  default     = {
+    Environment = "dev"
+    Project     = "Landing Zone"
+  }
+}

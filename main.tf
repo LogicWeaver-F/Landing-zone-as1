@@ -2,6 +2,11 @@
 resource "azurerm_resource_group" "landing_zone" {
   name     = var.resource_group_name
   location = var.location
+
+  tags = var.common_tags
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 # Virtual Network
@@ -10,6 +15,11 @@ resource "azurerm_virtual_network" "landing_zone" {
   address_space       = var.vnet_address_space
   location            = azurerm_resource_group.landing_zone.location
   resource_group_name = azurerm_resource_group.landing_zone.name
+
+  tags = var.common_tags
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 # Subnet for VMs
@@ -25,6 +35,12 @@ resource "azurerm_network_security_group" "vmss_nsg" {
   name                = "${var.resource_group_name}-nsg"
   location            = azurerm_resource_group.landing_zone.location
   resource_group_name = azurerm_resource_group.landing_zone.name
+
+  tags = var.common_tags
+
+  lifecycle {
+    prevent_destroy = true
+  }
 
   # Inbound Security Rules
   security_rule {
@@ -78,6 +94,8 @@ resource "azurerm_public_ip" "app_gateway_pip" {
   resource_group_name = azurerm_resource_group.landing_zone.name
   allocation_method   = "Static"
   sku                 = "Standard"
+
+  tags = var.common_tags
 }
 
 # Subnet for Application Gateway
@@ -93,6 +111,12 @@ resource "azurerm_application_gateway" "landing_zone" {
   name                = "${var.resource_group_name}-appgateway"
   location            = azurerm_resource_group.landing_zone.location
   resource_group_name = azurerm_resource_group.landing_zone.name
+
+  tags = var.common_tags
+
+  lifecycle {
+    create_before_destroy = true
+  }
 
   sku {
     name     = "Standard_v2"
@@ -115,9 +139,8 @@ resource "azurerm_application_gateway" "landing_zone" {
     port = 80
   }
 
-  # Backend Address Pool Configuration
   backend_address_pool {
-    name         = "backend-pool"
+    name = "backend-pool"
   }
 
   backend_http_settings {
@@ -150,10 +173,16 @@ resource "azurerm_linux_virtual_machine_scale_set" "landing_zone" {
   name                = "${var.resource_group_name}-vmss"
   location            = azurerm_resource_group.landing_zone.location
   resource_group_name = azurerm_resource_group.landing_zone.name
-  
+
+  tags = var.common_tags
+
+  lifecycle {
+    create_before_destroy = true
+  }
+
   sku                 = var.vm_size
   instances           = var.vm_instances
-  
+
   source_image_reference {
     publisher = var.os_image_publisher
     offer     = var.os_image_offer
@@ -183,10 +212,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "landing_zone" {
 
   disable_password_authentication = false
 
-  # Optional: Custom data for bootstrapping
   custom_data = base64encode(<<-EOF
     #!/bin/bash
-    # Basic setup script
     apt-get update
     apt-get install -y nginx
     systemctl start nginx

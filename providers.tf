@@ -19,7 +19,6 @@ provider "azurerm" {
   features {}
 }
 
-# Optional random string for unique naming
 resource "random_string" "suffix" {
   length  = 6
   special = false
