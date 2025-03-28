@@ -76,7 +76,7 @@ output "appgw_public_ip" {
 }
 
 output "backend_pool_id" {
-  value = [for pool in azurerm_application_gateway.appgw.backend_address_pool : pool.id if pool.name == "backend-pool"][0]
+  value = toset([for pool in azurerm_application_gateway.appgw.backend_address_pool : pool.id if pool.name == "backend-pool"])
 }
 
 output "health_probe_id" {

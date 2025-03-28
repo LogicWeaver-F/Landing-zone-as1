@@ -1,26 +1,20 @@
 resource "azurerm_linux_virtual_machine_scale_set" "vmss" {
-  name                = var.vmss_name
+  name                = "${var.vmss_name}-vmss"
   location            = var.location
   resource_group_name = var.resource_group_name
-  sku                 = "Standard_F2"
-  instances           = var.instance_count
-  admin_username      = var.admin_username
-  admin_password      = var.admin_password
-  disable_password_authentication = false
-  upgrade_mode        = "Rolling"
-  health_probe_id     = var.health_probe_id
-  rolling_upgrade_policy {
-    max_batch_instance_percent              = 10
-    max_unhealthy_instance_percent          = 10
-    max_unhealthy_upgraded_instance_percent = 5
-    pause_time_between_batches              = "PT0S"
+
+  lifecycle {
+    create_before_destroy = true
   }
 
+  sku                 = var.vm_size
+  instances           = var.instance_count
+
   source_image_reference {
-    publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "22_04-lts"
-    version   = "latest"
+    publisher = var.os_image_publisher
+    offer     = var.os_image_offer
+    sku       = var.os_image_sku
+    version   = var.os_image_version
   }
 
   os_disk {
@@ -29,18 +23,29 @@ resource "azurerm_linux_virtual_machine_scale_set" "vmss" {
   }
 
   network_interface {
-    name    = "vmss_interface"
+    name    = "vmss-nic"
     primary = true
 
     ip_configuration {
       name      = "internal"
       primary   = true
       subnet_id = var.subnet_id
-      application_gateway_backend_address_pool_ids = [var.backend_pool_id]
+      application_gateway_backend_address_pool_ids = var.backend_pool_id
     }
   }
 
-  tags = {
-    environment = "dev"
-  }
+  admin_username = var.admin_username
+  admin_password = var.admin_password
+
+  disable_password_authentication = false
+
+  custom_data = base64encode(<<-EOF
+    #!/bin/bash
+    apt-get update
+    apt-get install -y nginx
+    systemctl start nginx
+    systemctl enable nginx
+    echo "Landing Zone VMSS Instance" > /var/www/html/index.html
+  EOF
+  )
 }
