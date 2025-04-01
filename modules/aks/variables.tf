@@ -1,59 +1,18 @@
-variable "resource_group_name" {
-  type        = string
-  default     = "rg-one"
-  description = "Name of the resource group."
-}
-variable "location" {
-  type        = string
-  default     = "eastus"
-  description = "Location of the resource group."
-}
-variable "vnet_name" {}
-variable "vmss_name" {}
-variable "frontend_port_name" {}
-variable "instance_count" {}
-variable "admin_username" {
-  sensitive = true
-}
-variable "admin_password" {
-  sensitive = true
-}
-
-variable "os_image_publisher" {
-  description = "Publisher of the OS image"
-  type        = string
-  default     = "Canonical"
-}
-
-variable "os_image_offer" {
-  description = "Offer of the OS image"
-  type        = string
-  default     = "UbuntuServer"
-}
-
-variable "os_image_sku" {
-  description = "SKU of the OS image"
-  type        = string
-  default     = "18.04-LTS"
-}
-
-variable "os_image_version" {
-  description = "Version of the OS image"
-  type        = string
-  default     = "latest"
-}
-variable "vm_size" {
-  description = "Size of the Virtual Machines in the Scale Set"
-  type        = string
-  default     = "Standard_F2"
-}
-
 # Cluster basics
 variable "cluster_name" {
   description = "Name of the AKS cluster"
   type        = string
 }
 
+variable "location" {
+  description = "Azure region for the AKS cluster"
+  type        = string
+}
+
+variable "resource_group_name" {
+  description = "Name of the resource group"
+  type        = string
+}
 
 variable "dns_prefix" {
   description = "DNS prefix for the AKS cluster"
@@ -110,6 +69,12 @@ variable "max_node_count" {
   default     = 5
 }
 
+# Network
+variable "subnet_id" {
+  description = "ID of the subnet where AKS will be deployed"
+  type        = string
+}
+
 variable "network_plugin" {
   description = "Network plugin to use for Kubernetes network"
   type        = string
@@ -140,6 +105,7 @@ variable "docker_bridge_cidr" {
   default     = "172.17.0.1/16"
 }
 
+
 # Additional node pools
 variable "additional_node_pools" {
   description = "List of additional node pools to be created"
@@ -155,6 +121,15 @@ variable "additional_node_pools" {
     node_taints         = list(string)
   }))
   default = []
+}
+
+variable application_gateway_id{}
+
+# Monitoring
+variable "enable_monitoring" {
+  description = "Enable Azure Monitor for containers"
+  type        = bool
+  default     = false
 }
 
 # Tags

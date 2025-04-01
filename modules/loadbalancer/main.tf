@@ -82,3 +82,7 @@ output "backend_pool_id" {
 output "health_probe_id" {
   value = [for probe in azurerm_application_gateway.appgw.probe : probe.id][0]
 }
+
+output "application_gateway_id"{
+    value = azurerm_application_gateway.appgw.id
+}
